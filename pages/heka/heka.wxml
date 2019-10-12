@@ -1,0 +1,29 @@
+<!--pages/heka/heka.wxml-->
+<view class="convas-box">
+  <canvas canvas-id='share' style='width:375px;height:580px'></canvas> 
+</view>
+<view class='container-main'>
+  <view class='point-img'>
+  <image  bindtap="previewImg"  src='{{background}}' class='bjt'></image>
+  <view class="point-container">
+    <!-- <view class="hua" >
+      <view class="cro">
+        <div class="cro_left_top"></div>
+        <div class="cro_right_top"></div>
+        <div class="cro_left_bottom"></div>
+        <div class="cro_right_bottom"></div>
+      </view>
+    </view> -->
+    <view class="qianming">
+      <input class="weui-input" bindblur="createNewImg" type="text" maxlength="3" auto-focus name='name' value="{{name}}" placeholder="张 三" />
+      <label>敬</label>
+    </view>
+  </view>    
+  </view>
+</view>
+ 
+<view class='am-footer'>
+      <button bindtap='saveImageToPhotosAlbum'  style="background-color:{{pageBackgroundColor}};color:{{color}}">保存图片</button>
+</view>
+
+
