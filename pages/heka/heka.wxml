@@ -1,6 +1,6 @@
 <!--pages/heka/heka.wxml-->
 <view class="convas-box">
-  <canvas canvas-id='share' style='width:375px;height:580px'></canvas> 
+  <canvas canvas-id='share' style='width:375px;height:562px'></canvas> 
 </view>
 <view class='container-main'>
   <view class='point-img'>
@@ -15,7 +15,7 @@
       </view>
     </view> -->
     <view class="qianming">
-      <input class="weui-input" bindblur="createNewImg" type="text" maxlength="3" auto-focus name='name' value="{{name}}" placeholder="张 三" />
+      <input class="weui-input" bindinput="changewidth" style="width:{{inputwidth}}px" bindblur="secure" type="text" maxlength="4" placeholder-style="color:red;font-size:16px;" auto-focus name='name' value="{{name}}" placeholder="点击修改" />
       <label>敬</label>
     </view>
   </view>    

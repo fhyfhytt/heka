@@ -9,11 +9,12 @@ Page({
     imagePath: "",
     name: "",
     maskHidden: true,
-    background:"/images/heka.jpg",
+    background:"/images/heka2.jpg",
     pageBackgroundColor:"#ff4366",
-    color:"white"
+    color:"white",
+    inputwidth:"80",
+    show:false,
   },
-
   /**
    * 生命周期函数--监听页面加载
    */
@@ -87,49 +88,93 @@ Page({
       }
     }
   }, 
-  setName: function (context){
-    context.setFontSize(20);
-    context.setFillStyle("#67695b");
-    context.save();
-    // context.translate(170, 506);//必须先将旋转原点平移到文字位置
-    console.log(this.data.name)
-    if (this.data.name==""){
-      context.fillText( "张 三 敬", 150, 460);//必须为（0,0）原点
-    }else{
-      context.fillText(this.data.name + " 敬", 150, 460);//必须为（0,0）原点
+  secure:function(e){
+    var that=this
+    wx.cloud.init();
+    wx.cloud.callFunction({
+      name: 'msgSC',
+      data: {
+        text: e.detail.value||'张三'
+      }
+    }).then((res) => {
+      console.log(res)
+      if (res.result.code == "200") {
+        //检测通过
+        this.createNewImg(e)
+      } else {
+        //执行不通过
+        that.setData({
+          name:"",
+          inputwidth: 80
+        })
+        wx.showToast({
+          title: '包含敏感字哦。',
+          icon: 'none',
+          duration: 3000
+        })
+      }
+    })
+  
+  },
+  changewidth:function(e){
+    this.setData({
+      inputwidth: e.detail.value.length * 16||80
+    })
+  },
+  setName: function (ctx){
+    var that=this
+    let name = this.data.name.replace(/\s+/g, "").split("").join(" ")
+    ctx.font = 'bold 12px sans-serif';
+    ctx.setTextAlign('center');
+    ctx.textBaseline = 'middle';//文本垂直方向，基线位置 
+    ctx.save();
+    var discountText = name
+    var bdColor = '#fb9482';
+    var bdBackground = 'transparent';
+    var boxHeight = 30;
+    var paddingWidth=15
+    let topAt = 560 * 0.778
+    var boxWidth
+    if (discountText == "") {
+      boxWidth = ctx.measureText("张 三  敬").width + paddingWidth;
+      ctx.fillText("张 三  敬", 375 / 2, topAt);
+    } else {
+      boxWidth = ctx.measureText(discountText+ "  敬").width + paddingWidth;
+      ctx.fillText(discountText + "  敬", 375/2, topAt);
     }
-    context.textAlign = 'center';//文本水平对齐方式
-    context.textBaseline = 'middle';//文本垂直方向，基线位置 
-    context.restore();
-    context.stroke();
+    console.log(boxWidth)
+    // ctx.setStrokeStyle('#fb9482')
+    // ctx.strokeRect(375 / 2 - boxWidth/2, topAt - 8, boxWidth, 14)
+    ctx.restore();
+    ctx.stroke();
   },
   createNewImg: function (e) {
     var that = this;
-    if(e){
+    if(e && e.detail.value!=""){
       that.setData({
-        name:e.detail.value
+        name:e.detail.value,
+        show:true
       })
     }
-    var context = wx.createCanvasContext('share');
+    console.log(this.data)
+    var ctx = wx.createCanvasContext('share');
     //将模板图片绘制到canvas,在开发工具中drawImage()函数有问题，不显示图片
     //不知道是什么原因，手机环境能正常显示
-    context.drawImage(this.data.background, 0, 0, 375, 580);
+    ctx.drawImage(this.data.background, 0, 0, 375, 560);
     //绘制图片
-    that.setName(context)
-    context.draw();
-    //将生成好的图片保存到本地，需要延迟一会，绘制期间耗时
-    setTimeout(function () {
+    that.setName(ctx)
+    ctx.draw(true, function () {
       wx.canvasToTempFilePath({
         canvasId: 'share',
         x: 0,
         y: 0,
         width: 375,
-        height: 580,
-        destWidth: 750,
-        destHeight: 1000,
+        height: 560,
+        destWidth: 5* 375, //绘制canvas的时候用的是px， 这里换算成rpx ，导出后非常清晰
+        destHeight: 5* 560, //同上 px 换算成 rpx
+        quality: "1.0",
         success: function (res) {
           var tempFilePath = res.tempFilePath;
-          console.log(tempFilePath);
           that.setData({
             imagePath: tempFilePath,
             // canvasHidden:true
@@ -139,10 +184,10 @@ Page({
           console.log(res);
         }
       });
-    }, 200);
+    });
+    //将生成好的图片保存到本地，需要延迟一会，绘制期间耗时
   },
   saveImageToPhotosAlbum:function(){
-    
     let that = this
     that.setData({
       pageBackgroundColor: "white",
@@ -151,16 +196,17 @@ Page({
     const ctx = wx.createCanvasContext('share')
     //将模板图片绘制到canvas,在开发工具中drawImage()函数有问题，不显示图片
     //不知道是什么原因，手机环境能正常显示
-    ctx.drawImage(this.data.background, 0, 0, 375, 580);
+    ctx.drawImage(this.data.background, 0, 0, 375, 560);
     that.setName(ctx)
     ctx.draw(true,function () {
       wx.canvasToTempFilePath({
           x:0,
           y: 0,
           width: 375,
-          height: 580,
-          destWidth: 750,
-          destHeight: 1000,
+          height: 560,
+        destWidth: 5*375 ,
+        destHeight:5*560 ,
+        quality:"1.0",
           canvasId: 'share',
           success: function (saveRes) {
             that.setData({
@@ -240,11 +286,20 @@ Page({
 
   },
   previewImg:function(){
-    var img = this.data.imagePath 
-    wx.previewImage({
-      current: img, // 当前显示图片的http链接
-      urls: [img] // 需要预览的图片http链接列表
-    })
+    var that=this
+    if(!that.data.show){
+      wx.showToast({
+        title: '请输入人名',
+        icon:"none"
+      })
+    }else{
+      var img = this.data.imagePath
+        wx.previewImage({
+          current: img, // 当前显示图片的http链接
+          urls: [img] // 需要预览的图片http链接列表
+        })
+    }
+   
   },
 
 })

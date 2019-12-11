@@ -9,3 +9,4 @@
   </view>
   <button bindtap="bindViewTap">点击进入</button>
 </view>
+ 
